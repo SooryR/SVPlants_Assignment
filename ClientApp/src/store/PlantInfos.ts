@@ -39,9 +39,14 @@ interface sendPlantInfo {
     forecasts: PlantInfo[];
 }
 
+interface WateredPlant {
+    type: 'WATERED_PLANT';
+    plantInfo: PlantInfo;
+}
+
 // Declare a 'discriminated union' type. This guarantees that all references to 'type' properties contain one of the
 // declared type strings (and not any other arbitrary string).
-type KnownAction = RequestWeatherForecastsAction | ReceiveWeatherForecastsAction;
+type KnownAction = RequestWeatherForecastsAction | ReceiveWeatherForecastsAction | WateredPlant;
 
 // ----------------
 // ACTION CREATORS - These are functions exposed to UI components that will trigger a state transition.
@@ -78,7 +83,13 @@ export const actionCreators = {
             })
                 .then(response => response.json())
                 .then(responseFromServer => {
-                    console.log(responseFromServer);
+                    dispatch({ 
+                        type: 'WATERED_PLANT', 
+                        plantInfo: {
+                            lastWatered: responseFromServer,
+                            plantId: plantIndex,
+                        } 
+                    });
                 });
 
         }
@@ -98,11 +109,12 @@ export const reducer: Reducer<PlantInfosState> = (state: PlantInfosState | undef
     const action = incomingAction as KnownAction;
     switch (action.type) {
         case 'REQUEST_WEATHER_FORECASTS':
-            return {
-                startDateIndex: action.startDateIndex,
-                forecasts: state.forecasts,
-                isLoading: true
-            };
+            state.startDateIndex = action.startDateIndex;
+            return state;
+        case 'WATERED_PLANT':
+            const plantIndex = action.plantInfo.plantId
+            state.forecasts[plantIndex] = action.plantInfo
+            return state
         case 'RECEIVE_WEATHER_FORECASTS':
             // Only accept the incoming data if it matches the most recent request. This ensures we correctly
             // handle out-of-order responses.

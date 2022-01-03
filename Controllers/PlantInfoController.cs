@@ -32,7 +32,7 @@ namespace SVPlants_Assignment.Controllers
         [Route("plant")]
         public IEnumerable<PlantInfo> Get()
         {
-            return Enumerable.Range(1, 5).Select(index => new PlantInfo
+            return Enumerable.Range(0, 4).Select(index => new PlantInfo
             {
                 LastWatered = plantDates[index],
                 PlantId = index,

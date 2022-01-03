@@ -14,6 +14,7 @@ type WeatherForecastProps =
 
 
 class FetchData extends React.PureComponent<WeatherForecastProps> {
+
   // This method is called when the component is first added to the document
   public componentDidMount() {
     this.ensureDataFetched();
@@ -25,11 +26,12 @@ class FetchData extends React.PureComponent<WeatherForecastProps> {
   }
 
   public render() {
+    const forcastTable = this.renderForecastsTable()
     return (
       <React.Fragment>
         <h1 id="tabelLabel">Weather forecast</h1>
         <p>This component demonstrates fetching data from the server and working with URL parameters.</p>
-        {this.renderForecastsTable()}
+        {forcastTable}
         {this.renderPagination()}
       </React.Fragment>
     );
@@ -40,11 +42,15 @@ class FetchData extends React.PureComponent<WeatherForecastProps> {
     this.props.requestPlantInfos(startDateIndex);
   }
 
-  private waterPlant(id: number){
-    this.props.sendWateringDate(id);
-    const startDateIndex = parseInt(this.props.match.params.startDateIndex, 10) || 0;
-    this.props.requestPlantInfos(startDateIndex+1);
-    this.renderForecastsTable();
+  public waterPlant(id: number){
+    const dateDifference = (Date.now() - Date.parse(this.props.forecasts[id].lastWatered))/1000;
+    console.log(dateDifference);
+    if (dateDifference > 40) {
+      this.props.sendWateringDate(id);
+    }
+    else{
+      alert("not 40 seconds");
+    }
   }
 
 
@@ -62,12 +68,12 @@ class FetchData extends React.PureComponent<WeatherForecastProps> {
         <tbody>
           {this.props.forecasts.map((forecast: WeatherForecastsStore.PlantInfo) =>
             <tr key={forecast.plantId}>
-              <td>{forecast.lastWatered}</td>
+              <td id={forecast.plantId.toString()}>{forecast.lastWatered}</td>
               <td>{forecast.plantId}</td>
               <td>
                 <button type="button"
                     className="btn btn-primary btn-lg"
-                    onClick={() => { this.waterPlant(forecast.plantId); }}>
+                    onClick={() => { this.waterPlant(forecast.plantId);}}>
                     Start watering
                 </button>
               </td>
