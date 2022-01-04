@@ -83,8 +83,12 @@ export const reducer: Reducer<PlantInfosState> = (state: PlantInfosState | undef
             return state;
         case 'WATERED_PLANT':
             const plantIndex = action.plantInfo.plantId;
-            state.plantList[plantIndex] = action.plantInfo;
-            return state;
+            const newPlantList = [...state.plantList]
+            newPlantList[plantIndex]  = action.plantInfo;
+            return {
+                ...state,
+                plantList: newPlantList,
+            };
         case 'SEND_PLANT_INFO':
             if (action.startDateIndex === state.startDateIndex) {
                 return {

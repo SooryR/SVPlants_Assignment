@@ -25,7 +25,11 @@ namespace SVPlants_Assignment.Controllers
 
         private static DateTime[] plantDates = new []
         {
-            DateTime.Now, DateTime.Now, DateTime.Now, DateTime.Now, DateTime.Now
+            new DateTime(2015, 12, 25), 
+            new DateTime(2015, 12, 25), 
+            new DateTime(2015, 12, 25), 
+            new DateTime(2015, 12, 25), 
+            new DateTime(2015, 12, 25)
         };
 
         [HttpGet]
