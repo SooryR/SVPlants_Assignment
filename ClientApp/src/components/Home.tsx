@@ -116,7 +116,7 @@ class FetchData extends React.PureComponent<PlantProps, IState> {
             <th>Plant Id</th>
             <th></th>
             <th></th>
-            <th></th>
+            <th>+6hrs Dry</th>
           </tr>
         </thead>
         <tbody>
