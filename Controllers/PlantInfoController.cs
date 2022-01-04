@@ -25,14 +25,14 @@ namespace SVPlants_Assignment.Controllers
 
         private static DateTime[] plantDates = new []
         {
-            DateTime.Now, DateTime.Now, DateTime.Now, DateTime.Now, DateTime.Now, DateTime.Now
+            DateTime.Now, DateTime.Now, DateTime.Now, DateTime.Now, DateTime.Now
         };
 
         [HttpGet]
         [Route("plant")]
         public IEnumerable<PlantInfo> Get()
         {
-            return Enumerable.Range(0, 4).Select(index => new PlantInfo
+            return Enumerable.Range(0, 5).Select(index => new PlantInfo
             {
                 LastWatered = plantDates[index],
                 PlantId = index,
@@ -43,7 +43,6 @@ namespace SVPlants_Assignment.Controllers
         [HttpPost("water")]
         public DateTime Put(PostInput input)
         {
-            
             plantDates[input.plantId] = DateTime.Now;
             return plantDates[input.plantId];
         }

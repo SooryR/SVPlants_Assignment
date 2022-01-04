@@ -1,37 +1,42 @@
-﻿import * as React from 'react';
+﻿import internal from 'assert';
+import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import { ApplicationState } from '../store';
-import * as WeatherForecastsStore from '../store/PlantInfos';
+import * as PlantStore from '../store/PlantInfos';
 
-// At runtime, Redux will merge together...
-type WeatherForecastProps =
-  WeatherForecastsStore.PlantInfosState // ... state we've requested from the Redux store
-  & typeof WeatherForecastsStore.actionCreators // ... plus action creators we've requested
-  & RouteComponentProps<{ startDateIndex: string }>; // ... plus incoming routing parameters
-
+type PlantProps =
+  PlantStore.PlantInfosState 
+  & typeof PlantStore.actionCreators 
+  & RouteComponentProps<{ startDateIndex: string }>; 
 
 
-class FetchData extends React.PureComponent<WeatherForecastProps> {
+interface IState {
+  currentlyWateringPlantIds: Map<number, boolean>;
+}
 
-  // This method is called when the component is first added to the document
+class FetchData extends React.PureComponent<PlantProps, IState> {
+  
+  constructor(props: PlantProps) {
+    super(props);
+    this.state = {currentlyWateringPlantIds:new Map()};
+  }
+
   public componentDidMount() {
     this.ensureDataFetched();
   }
 
-  // This method is called when the route parameters change
   public componentDidUpdate() {
     this.ensureDataFetched();
   }
 
   public render() {
-    const forcastTable = this.renderForecastsTable()
+    const plantTable = this.renderPlantTable()
     return (
       <React.Fragment>
-        <h1 id="tabelLabel">Weather forecast</h1>
-        <p>This component demonstrates fetching data from the server and working with URL parameters.</p>
-        {forcastTable}
+        <h1 id="tabelLabel">List of Plants</h1>
+        {plantTable}
         {this.renderPagination()}
       </React.Fragment>
     );
@@ -43,44 +48,58 @@ class FetchData extends React.PureComponent<WeatherForecastProps> {
   }
 
   public waterPlant(id: number){
-    const dateDifference = (Date.now() - Date.parse(this.props.forecasts[id].lastWatered))/1000;
-    console.log(dateDifference);
-    if (dateDifference > 40) {
-      this.props.sendWateringDate(id);
+    const timeDifference = (Date.now() - Date.parse(this.props.plantList[id].lastWatered))/1000;
+  
+    if (timeDifference > 40) {
+      this.setState((prevState) => {
+        const newlyWateringPlantIds = new Map(prevState!.currentlyWateringPlantIds)
+        newlyWateringPlantIds.set(id, true)
+        return { currentlyWateringPlantIds: newlyWateringPlantIds }
+      })
+
+      setTimeout(() => {
+        this.setState((prevState) => {
+          this.props.sendWateringDate(id);
+          const newlyWateringPlantIds = new Map(prevState!.currentlyWateringPlantIds)
+          newlyWateringPlantIds.delete(id)
+          return { currentlyWateringPlantIds: newlyWateringPlantIds }
+        })
+      },10000);
     }
     else{
-      alert("not 40 seconds");
+      alert("Plant is on cooldown");
     }
   }
 
 
-  private renderForecastsTable() {
+  private renderPlantTable() {
     return (
       <table className='table table-striped' aria-labelledby="tabelLabel">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
+            <th>Time</th>
+            <th>Plant Id</th>
+            <th></th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          {this.props.forecasts.map((forecast: WeatherForecastsStore.PlantInfo) =>
-            <tr key={forecast.plantId}>
-              <td id={forecast.plantId.toString()}>{forecast.lastWatered}</td>
-              <td>{forecast.plantId}</td>
+          {this.props.plantList.map((plant: PlantStore.PlantInfo) =>
+            <tr key={plant.plantId}>
+              <td>Date: {plant.lastWatered.replace(/T/g, ' Time: ')}</td>
+              <td>{plant.plantId+1}</td>
               <td>
                 <button type="button"
                     className="btn btn-primary btn-lg"
-                    onClick={() => { this.waterPlant(forecast.plantId);}}>
+                    onClick={() => { this.waterPlant(plant.plantId);}}
+                    disabled={this.state.currentlyWateringPlantIds.has(plant.plantId)}>
                     Start watering
                 </button>
               </td>
               <td>
                 <button type="button"
                     className="btn btn-primary btn-lg"
-                    onClick={() => { this.waterPlant(forecast.plantId); }}>
+                    onClick={() => { this.waterPlant(plant.plantId); }}>
                     Stop watering
                 </button>
               </td>
@@ -107,5 +126,5 @@ class FetchData extends React.PureComponent<WeatherForecastProps> {
 
 export default connect(
   (state: ApplicationState) => state.plantStats, // Selects which state properties are merged into the component's props
-  WeatherForecastsStore.actionCreators // Selects which action creators are merged into the component's props
+  PlantStore.actionCreators // Selects which action creators are merged into the component's props
 )(FetchData as any); // eslint-disable-line @typescript-eslint/no-explicit-any
